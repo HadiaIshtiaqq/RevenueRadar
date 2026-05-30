@@ -7,15 +7,16 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Install deps first (cached layer)
+# Install ALL deps (devDeps needed for vite+esbuild build step)
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and build
+# Copy source and build frontend + backend
 COPY . .
 RUN npm run build
 
 EXPOSE 3000
 ENV NODE_ENV=production
 
-CMD ["npm", "start"]
+# ESM output — import.meta.url works natively
+CMD ["node", "dist/server.mjs"]
