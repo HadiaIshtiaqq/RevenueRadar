@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+revenueradar.db
+revenueradar.db-shm
+revenueradar.db-wal
+.cognee_db
+.claude
+.vscode
+*.log
