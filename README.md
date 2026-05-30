@@ -1,92 +1,183 @@
-# RevenueRadarAI
+# RevenueRadar AI
 
-**AI-powered competitive intelligence and GTM signal platform** — built for the Bright Data Web Hackathon.
+> **Autonomous competitive intelligence for GTM teams** — monitors the entire public web for competitor signals, synthesises them with AI, and delivers executive-grade battlecards to your sales team in real time.
 
-> **Demo:** Run `npm run dev` and open [http://localhost:3000](http://localhost:3000) to see the live dashboard. Screenshots can be added to the `/screenshots` directory.
+Built for the **Bright Data Web Scraping Hackathon 2026** using four Bright Data products, three partner integrations, and a fully agentic AI research loop.
+
+---
 
 ## What It Does
 
-RevenueRadarAI automatically discovers your competitors and monitors them 24/7 using **four distinct Bright Data products**:
+Sales teams lose deals because they find out about competitor moves too late — price changes, product launches, funding rounds, exec hires. RevenueRadar fixes that.
 
-| Feature | Bright Data Product Used |
-|---|---|
-| Competitor discovery at signup | **SERP API** — multi-angle Google search |
-| Live news & competitor signals | **SERP API** — Google News scraping |
-| Competitor page scraping (pricing, messaging) | **Web Unlocker** — bot-bypass HTML + Markdown |
+Sign up with your product name and niche → the system automatically discovers your top 10 competitors → monitors them 24/7 → alerts your Slack when something high-impact happens.
+
+---
+
+## Live Demo
+
+```bash
+git clone https://github.com/HadiaIshtiaqq/RevenueRadar.git
+cd RevenueRadar
+npm install
+cp .env.example .env   # add your API keys
+npm run dev            # open http://localhost:3000
+```
+
+---
+
+## Bright Data Integration — 4 Products
+
+| Feature | Bright Data Product |
+|:---|:---|
+| Competitor discovery at signup | **SERP API** — parallel Google searches |
+| Background signal monitor (every 5 min) | **SERP API** — pricing / hiring / news |
+| Live competitor page scraping | **Web Unlocker** — bot-bypass HTML → Markdown |
 | JavaScript-heavy pages (LinkedIn, SPAs) | **Scraping Browser** — full JS rendering |
-| LinkedIn company/person profiles | **MCP Web Scraper API** — structured datasets |
+| LinkedIn company / person profiles | **MCP Web Scraper API** — structured datasets |
+| Crunchbase firmographics | **MCP Web Scraper API** — funding data |
 | Reddit social sentiment | **MCP Web Scraper API** — Reddit dataset |
-| Crunchbase firmographics | **MCP Web Scraper API** — Crunchbase dataset |
-| Buying signal enrichment | **SERP API** — LinkedIn job search |
+| Account buying-signal enrichment | **SERP API** — LinkedIn job search |
+
+---
+
+## Partner Integrations
+
+| Partner | How It's Used |
+|:---|:---|
+| **Speechmatics** | Transcribe competitor podcasts, keynotes, earnings calls — AI extracts roadmap hints and positioning shifts |
+| **Cognee** | Graph memory sidecar — persists intelligence across research sessions, agent recalls prior findings |
+| **Slack** | Automated alerts for any signal scoring 75+ impact — fires within minutes of detection |
+
+---
 
 ## Key Features
 
-- **Executive Intelligence Dashboard** — live competitor change feed, GTM pressure chart, global HQ map
-- **Sentinel Intel Map** — Google Maps visualization of all competitor headquarters with demand zones
-- **Competitor Battlecards** — AI-generated positioning analysis and win/loss playbooks
-- **Research Agent** — AIML API agentic loop with 17 Bright Data tools; degrades to direct BD queries when AI quota is unavailable
-- **Account Enrichment** — enter any domain → get firmographics, tech stack, LinkedIn buying signals, AI-drafted outreach
-- **Alert System** — Slack webhook delivery for high-impact competitor changes
-- **Background Monitor** — every 5 minutes: scans top competitors via Bright Data SERP, persists new signals
-- **Audio / Podcast Intelligence** — transcribe competitor keynotes & podcasts via Speechmatics, extract roadmap hints and positioning shifts with AI
+### Executive Intelligence Dashboard
+- Live competitor change feed with AI-classified signal types (pricing, hiring, product, messaging)
+- GTM Pressure Velocity chart — 7-day rolling average of competitor activity
+- Sentinel Intel Map — Google Maps with geocoded competitor HQs and demand zones
+
+### Competitor Battlecards
+- AI-generated threat scores, market overlap, feature parity ratings
+- Timeline signals feed filtered by type
+- Objection battlecards with one-click copy of sales talk tracks
+- Live Pricing Scanner — scrapes competitor pricing pages via Bright Data Web Unlocker
+
+### Research Agent (Streaming)
+- AIML API GPT-4o agentic loop with **17 registered Bright Data tools**
+- Streams tool calls live to the UI — judges can watch it think, search, and scrape in real time
+- Three-tier fallback: AI + Bright Data → Bright Data only → local DB cache
+
+### Audio / Podcast Intelligence
+- Paste any MP3/WAV URL or upload a file
+- Speechmatics transcribes the audio
+- AI extracts roadmap hints, pricing signals, competitive mentions, growth signals
+
+### Account Enrichment
+- Enter any company domain → firmographics, tech stack, hiring signals, AI outreach draft
+- Powered by Bright Data MCP (LinkedIn, Crunchbase) + Web Unlocker
+
+### Alerts
+- Slack webhook delivery for high-impact signals
+- Configurable impact threshold (0–100)
+- TriggerWare webhook integration for workflow automation
+
+---
+
+## Architecture
+
+```
+User signup
+  └─► discoverCompetitors()
+        ├─► bdSerp() × 3 parallel queries          [SERP API]
+        └─► GPT-4o extracts structured competitor list
+
+Background monitor (every 5 min)
+  └─► fetchRealCompetitorSignals() per competitor
+        └─► bdSerp() — pricing/hiring/product       [SERP API]
+        └─► Slack alert if impact ≥ 75             [Slack]
+
+Research agent (Server-Sent Events stream)
+  └─► runAgentStream() — GPT-4o function-calling loop
+        ├─► search_web / search_news / search_jobs  [SERP API]
+        ├─► fetch_webpage / scrape_as_markdown      [Web Unlocker]
+        ├─► scrape_js_page                          [Scraping Browser]
+        ├─► get_linkedin_company / person           [MCP API]
+        ├─► get_crunchbase_company                  [MCP API]
+        └─► monitor_social                          [MCP API]
+
+Audio intelligence
+  └─► submitTranscriptionJob()                     [Speechmatics]
+        └─► GPT-4o → competitive signal extraction
+
+Memory layer
+  └─► cognee_server.py (Python sidecar)            [Cognee]
+        └─► graph knowledge base across sessions
+```
+
+---
+
+## Fallback Strategy
+
+The app never goes dark:
+
+1. **Full mode** — AIML API + Bright Data → live agentic intelligence
+2. **No AI** — Bright Data only → real web data, no synthesis
+3. **No keys** — local SQLite cache → clearly labelled demo mode
+
+---
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + Recharts + Google Maps
-- **Backend**: Node.js + Express + Vite middleware (single-port dev server)
-- **AI**: AIML API (OpenAI-compatible) — `gpt-4o-mini` by default, configurable via `AIML_MODEL`
-- **Data**: Bright Data SERP + Web Unlocker + Scraping Browser + MCP Server
-- **Storage**: SQLite (better-sqlite3, WAL mode)
-- **Auth**: scrypt password hashing, UUID session tokens
-- **Audio**: Speechmatics speech-to-text for podcast/keynote monitoring
-- **Memory**: Cognee graph memory sidecar (optional Python process — see below)
+| Layer | Technology |
+|:---|:---|
+| Frontend | React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + Recharts |
+| Backend | Node.js + Express + Vite middleware (single port) |
+| AI | AIML API — GPT-4o (17 tool declarations) |
+| Web Data | Bright Data SERP + Web Unlocker + Scraping Browser + MCP |
+| Database | SQLite (better-sqlite3, WAL mode) |
+| Auth | scrypt password hashing, UUID session tokens |
+| Audio | Speechmatics speech-to-text |
+| Memory | Cognee graph memory (Python sidecar, auto-started) |
+
+---
 
 ## Setup
 
-### 1. Clone and install
+### 1. Install
 
 ```bash
-git clone <repo>
-cd RevenueRadarAI
+git clone https://github.com/HadiaIshtiaqq/RevenueRadar.git
+cd RevenueRadar
 npm install
+pip install cognee fastapi uvicorn   # optional — for memory layer
 ```
 
-### 2. Configure environment
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Fill in `.env`:
 
 ```env
-# Required — Bright Data
-BRIGHTDATA_API_KEY=your_brightdata_api_key
+# Required
+BRIGHTDATA_API_KEY=your_key
+AIML_API_KEY=your_key
 
-# Required — AIML API (https://aimlapi.com)
-AIML_API_KEY=your_aiml_api_key
-# Optional: override default model
-# AIML_MODEL=gpt-4o-mini
-
-# Optional — Bright Data zones (defaults shown)
+# Bright Data zones (must match your dashboard zone names)
 BRIGHTDATA_SERP_ZONE=serp_api1
-BRIGHTDATA_UNLOCKER_ZONE=mcp_unlocker
+BRIGHTDATA_UNLOCKER_ZONE=web_unlocker1
 BRIGHTDATA_BROWSER_ZONE=scraping_browser1
+BRIGHTDATA_MCP_URL=https://mcp.brightdata.com/sse?token=your_token
 
-# Optional — Bright Data MCP (for LinkedIn/Crunchbase datasets)
-BRIGHTDATA_MCP_URL=https://mcp.brightdata.com/sse
-
-# Optional — Google Maps (for Sentinel Intel Map)
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
-
-# Optional — Slack alerts
+# Optional integrations
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
-
-# Optional — Speechmatics (for audio/podcast intelligence)
-SPEECHMATICS_API_KEY=your_speechmatics_key
-
-# Optional — Cognee memory sidecar (requires Python setup below)
-GEMINI_API_KEY=your_gemini_api_key
+SPEECHMATICS_API_KEY=your_key
+GEMINI_API_KEY=your_key          # for Cognee memory
+VITE_GOOGLE_MAPS_API_KEY=your_key
 ```
 
 ### 3. Run
@@ -95,100 +186,56 @@ GEMINI_API_KEY=your_gemini_api_key
 npm run dev
 ```
 
-App available at [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) — sign up with your product name and niche, then watch competitor discovery run automatically.
 
-## Bright Data Integration Architecture
+---
 
-```
-User signup
-  └─► discoverCompetitors()
-        ├─► bdSerp() × 3 parallel SERP queries        [SERP API]
-        └─► AIML API extracts structured competitor list [AI]
-
-Background monitor (every 5 min)
-  └─► fetchRealCompetitorSignals() per competitor
-        └─► bdSerp() — pricing/hiring/product signals  [SERP API]
-
-Research agent (SSE stream)
-  ├─► runAgentStream() — AIML API function-calling loop
-  │     ├─► search_web → bdSerp()                     [SERP API]
-  │     ├─► search_news → bdSerpNews()                [SERP API]
-  │     ├─► search_jobs → bdSerpJobs()                [SERP API]
-  │     ├─► fetch_webpage → bdScrapeMarkdown()        [Web Unlocker]
-  │     ├─► scrape_js_page → bdScrapeBrowser()        [Scraping Browser]
-  │     ├─► get_linkedin_company → bdMcpCall()        [MCP API]
-  │     ├─► get_linkedin_person → bdMcpCall()         [MCP API]
-  │     ├─► get_crunchbase_company → bdMcpCall()      [MCP API]
-  │     └─► monitor_social → bdMcpCall()              [MCP API]
-  └─► runBrightDataDirectResearch() [fallback, no AI] [SERP API]
-
-Account enrichment (/api/enrich-company)
-  └─► runAgent() — AIML API + BD tools
-        ├─► bdSerpJobs() — LinkedIn buying signals    [SERP API]
-        ├─► bdScrapeMarkdown() — company pages        [Web Unlocker]
-        └─► bdMcpCall() — LinkedIn/Crunchbase         [MCP API]
-```
-
-## Fallback Strategy
-
-The app is designed to degrade gracefully:
-
-1. **AIML API + Bright Data available** → Full agentic intelligence
-2. **AI quota exhausted, BD available** → Direct Bright Data research (real data, no AI synthesis)
-3. **No API keys** → Local database intelligence (clearly labeled as offline / demo mode)
-
-## Cognee Memory Sidecar (Optional)
-
-RevenueRadarAI ships an optional persistent memory layer powered by [Cognee](https://github.com/topoteretes/cognee). It runs as a separate Python process and lets the research agent recall prior intelligence across sessions.
-
-**Setup:**
+## Tests
 
 ```bash
-pip install cognee fastapi uvicorn
+npm test
 ```
 
-The Node.js server auto-starts `cognee_server.py` on boot. If Python is not installed or the process fails to start, the app runs normally without memory — all other features are unaffected. The startup log will show `[Cognee] Memory layer ready ✓` when it's working.
+```
+ℹ tests 49
+ℹ pass  49
+ℹ fail  0
+```
 
-## n8n Workflow Integration (Optional)
-
-The file `n8n-workflow.json` defines an [n8n](https://n8n.io) automation that can complement the built-in background monitor:
-
-- **Schedule Trigger** — fires every 30 minutes
-- Calls `GET /api/db/tasks?status=Pending` to find queued research tasks
-- Calls `PATCH /api/db/tasks/:id` to trigger processing and poll for completion
-- Useful for hosting scenarios where you want an external orchestrator instead of the in-process `setInterval` loop
-
-Import the file into your n8n instance and point the HTTP nodes at your deployed app URL.
+---
 
 ## Project Structure
 
 ```
-RevenueRadarAI/
-├── server.ts              # Express backend + AI agent + all BD integrations
-├── db.ts                  # SQLite schema, migrations, serializers
+RevenueRadar/
+├── server.ts              # Express backend + all API routes
+├── db.ts                  # SQLite schema + serializers
 ├── lib/
-│   ├── agent.ts           # AIML API agentic loop + 17 Bright Data tools
-│   ├── brightdata.ts      # Bright Data SERP / Unlocker / Browser / MCP
+│   ├── agent.ts           # GPT-4o agentic loop + 17 Bright Data tools
+│   ├── brightdata.ts      # SERP / Unlocker / Browser / MCP wrappers
 │   ├── geocoding.ts       # Company HQ geocoding pipeline
-│   ├── cognee.ts          # Cognee memory sidecar
-│   ├── auth.ts            # scrypt hashing + session tokens
-│   ├── cache.ts           # TTL cache (SERP 15 min, scrape 30 min)
-│   ├── config.ts          # All env-var constants
-│   └── utils.ts           # genId, sha256, sanitizeInput, tryParseJSON
+│   ├── cognee.ts          # Cognee memory sidecar manager
+│   ├── auth.ts            # scrypt + session tokens
+│   ├── cache.ts           # TTL cache
+│   ├── config.ts          # Env-var constants
+│   └── utils.ts           # Utilities
 ├── src/
-│   ├── App.tsx            # Root router + auth state
 │   ├── components/
-│   │   ├── LandingPage.tsx      # Signup/signin
-│   │   ├── DashboardView.tsx    # Executive intelligence + Sentinel Map
-│   │   ├── CompetitorsView.tsx  # Battlecards + competitor management
-│   │   ├── ResearchView.tsx     # Streaming research agent (Pipeline + Live)
-│   │   ├── AccountsView.tsx     # Target account enrichment
-│   │   ├── AlertsView.tsx       # Alert subscription management
-│   │   └── SettingsView.tsx     # User settings
-│   └── types.ts           # Shared TypeScript interfaces
+│   │   ├── DashboardView.tsx    # Executive intel terminal + map
+│   │   ├── CompetitorsView.tsx  # Battlecards + competitor pipeline
+│   │   ├── ResearchView.tsx     # Streaming agent + pipeline
+│   │   ├── AccountsView.tsx     # Account enrichment
+│   │   ├── AlertsView.tsx       # Alert subscriptions
+│   │   └── SettingsView.tsx     # Profile + notifications
+│   └── types.ts
 ├── tests/
-│   └── smoke.test.ts      # Unit tests (run with: npm test)
-├── cognee_server.py        # Cognee memory sidecar (Python, optional)
-├── n8n-workflow.json       # Optional n8n automation workflow
-└── .env.example            # Environment variable reference
+│   └── smoke.test.ts      # 49 unit tests
+├── cognee_server.py        # Cognee memory sidecar (Python)
+└── n8n-workflow.json       # Optional n8n automation
 ```
+
+---
+
+## License
+
+MIT
