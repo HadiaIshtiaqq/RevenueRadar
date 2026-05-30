@@ -139,7 +139,7 @@ function AuthModal({ onClose, onAuth }: { onClose: () => void; onAuth: LandingPa
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 overflow-y-auto"
     >
       {/* Backdrop */}
       <motion.div
@@ -156,7 +156,7 @@ function AuthModal({ onClose, onAuth }: { onClose: () => void; onAuth: LandingPa
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="relative z-10 w-full max-w-md bg-[#0d1224] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full max-w-md bg-[#0d1224] border border-white/10 rounded-2xl shadow-2xl overflow-hidden my-auto"
       >
         {/* Header gradient bar */}
         <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500" />
