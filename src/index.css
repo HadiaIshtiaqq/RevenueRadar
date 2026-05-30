@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-sans);
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: rgba(241,245,249,0.4); }
+::-webkit-scrollbar-thumb  { background: rgba(148,163,184,0.28); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.45); }
+
+/* ── Logo sweep animation ───────────────────────────────────────────────────── */
+.logo-sweep {
+  animation: logo-sweep 4s linear infinite;
+  transform-origin: 20px 20px;
+}
+@keyframes logo-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Blip pulse on logo */
+.logo-blip {
+  animation: blip-pulse 4s ease-in-out infinite;
+}
+@keyframes blip-pulse {
+  0%, 100% { opacity: 0.3; r: 2.5; }
+  50%       { opacity: 1;   r: 3.2; }
+}
+
+/* ── Landing ticker ─────────────────────────────────────────────────────────── */
+.ticker-track {
+  animation: ticker-scroll 28s linear infinite;
+  white-space: nowrap;
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Radar sweep (sidebar) ──────────────────────────────────────────────────── */
+.radar-sweep {
+  animation: radar-sweep 5s linear infinite;
+}
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Soft pulse ─────────────────────────────────────────────────────────────── */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.05); }
+}
+
+/* ── Card hover lift ────────────────────────────────────────────────────────── */
+.card-hover {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card-hover:hover {
+  box-shadow: 0 8px 30px -8px rgba(99,102,241,0.18);
+  transform: translateY(-1px);
+}

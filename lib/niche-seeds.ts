@@ -1,0 +1,181 @@
+export type SeedEntry = { name: string; domain: string; scope: string };
+
+export const NICHE_SEEDS: Record<string, SeedEntry[]> = {
+  restaurant:  [
+    { name: "DoorDash",   domain: "doordash.com",   scope: "global" },
+    { name: "Uber Eats",  domain: "ubereats.com",   scope: "global" },
+    { name: "Grubhub",    domain: "grubhub.com",    scope: "global" },
+    { name: "Deliveroo",  domain: "deliveroo.com",  scope: "global" },
+    { name: "Just Eat",   domain: "just-eat.com",   scope: "global" },
+    { name: "Zomato",     domain: "zomato.com",     scope: "global" },
+    { name: "Swiggy",     domain: "swiggy.com",     scope: "local"  },
+    { name: "Instacart",  domain: "instacart.com",  scope: "global" },
+    { name: "Gopuff",     domain: "gopuff.com",     scope: "local"  },
+  ],
+  grocery: [
+    { name: "Instacart",        domain: "instacart.com",     scope: "global" },
+    { name: "Amazon Fresh",     domain: "amazon.com",        scope: "global" },
+    { name: "Shipt",            domain: "shipt.com",         scope: "global" },
+    { name: "Walmart Grocery",  domain: "walmart.com",       scope: "global" },
+    { name: "Gopuff",           domain: "gopuff.com",        scope: "local"  },
+    { name: "Thrive Market",    domain: "thrivemarket.com",  scope: "global" },
+  ],
+  coffee: [
+    { name: "Starbucks",    domain: "starbucks.com",    scope: "global" },
+    { name: "Dunkin",       domain: "dunkindonuts.com", scope: "global" },
+    { name: "Peet's Coffee",domain: "peets.com",        scope: "local"  },
+    { name: "Nespresso",    domain: "nespresso.com",    scope: "global" },
+    { name: "Lavazza",      domain: "lavazza.com",      scope: "global" },
+  ],
+  clothing: [
+    { name: "Zara",             domain: "zara.com",             scope: "global" },
+    { name: "H&M",              domain: "hm.com",               scope: "global" },
+    { name: "ASOS",             domain: "asos.com",             scope: "global" },
+    { name: "Uniqlo",           domain: "uniqlo.com",           scope: "global" },
+    { name: "Gap",              domain: "gap.com",              scope: "global" },
+    { name: "Shein",            domain: "shein.com",            scope: "global" },
+    { name: "Boohoo",           domain: "boohoo.com",           scope: "local"  },
+    { name: "PrettyLittleThing",domain: "prettylittlething.com",scope: "local"  },
+  ],
+  footwear: [
+    { name: "Nike",       domain: "nike.com",       scope: "global" },
+    { name: "Adidas",     domain: "adidas.com",     scope: "global" },
+    { name: "Zappos",     domain: "zappos.com",     scope: "global" },
+    { name: "ASOS",       domain: "asos.com",       scope: "global" },
+    { name: "Foot Locker",domain: "footlocker.com", scope: "global" },
+  ],
+  beauty: [
+    { name: "Sephora",     domain: "sephora.com",     scope: "global" },
+    { name: "Ulta Beauty", domain: "ulta.com",         scope: "global" },
+    { name: "e.l.f.",      domain: "elfcosmetics.com", scope: "global" },
+    { name: "Fenty Beauty",domain: "fentybeauty.com",  scope: "global" },
+  ],
+  skincare: [
+    { name: "CeraVe",       domain: "cerave.com",       scope: "global" },
+    { name: "The Ordinary", domain: "theordinary.com",  scope: "global" },
+    { name: "Neutrogena",   domain: "neutrogena.com",   scope: "global" },
+    { name: "La Roche-Posay",domain:"laroche-posay.com",scope: "global" },
+  ],
+  fitness: [
+    { name: "Peloton",     domain: "onepeloton.com",       scope: "global" },
+    { name: "ClassPass",   domain: "classpass.com",        scope: "global" },
+    { name: "Noom",        domain: "noom.com",             scope: "global" },
+    { name: "MyFitnessPal",domain: "myfitnesspal.com",     scope: "global" },
+  ],
+  healthcare: [
+    { name: "Teladoc",     domain: "teladoc.com",     scope: "global" },
+    { name: "Hims & Hers", domain: "forhims.com",     scope: "global" },
+    { name: "Zocdoc",      domain: "zocdoc.com",      scope: "global" },
+  ],
+  furniture: [
+    { name: "IKEA",        domain: "ikea.com",        scope: "global" },
+    { name: "Wayfair",     domain: "wayfair.com",     scope: "global" },
+    { name: "West Elm",    domain: "westelm.com",     scope: "global" },
+    { name: "Pottery Barn",domain: "potterybarn.com", scope: "global" },
+  ],
+  electronics: [
+    { name: "Best Buy",   domain: "bestbuy.com",       scope: "global" },
+    { name: "Newegg",     domain: "newegg.com",        scope: "global" },
+    { name: "B&H Photo",  domain: "bhphotovideo.com",  scope: "global" },
+    { name: "Samsung",    domain: "samsung.com",       scope: "global" },
+  ],
+  pet: [
+    { name: "Chewy",    domain: "chewy.com",   scope: "global" },
+    { name: "PetSmart", domain: "petsmart.com",scope: "global" },
+    { name: "Petco",    domain: "petco.com",   scope: "global" },
+  ],
+  edtech: [
+    { name: "Coursera",    domain: "coursera.org",   scope: "global" },
+    { name: "Udemy",       domain: "udemy.com",       scope: "global" },
+    { name: "Duolingo",    domain: "duolingo.com",    scope: "global" },
+    { name: "Pluralsight", domain: "pluralsight.com", scope: "global" },
+  ],
+  streaming: [
+    { name: "Netflix",    domain: "netflix.com",    scope: "global" },
+    { name: "Hulu",       domain: "hulu.com",       scope: "global" },
+    { name: "Disney+",    domain: "disneyplus.com", scope: "global" },
+    { name: "HBO Max",    domain: "max.com",        scope: "global" },
+  ],
+  fintech: [
+    { name: "Stripe",  domain: "stripe.com",   scope: "global" },
+    { name: "Square",  domain: "squareup.com", scope: "global" },
+    { name: "PayPal",  domain: "paypal.com",   scope: "global" },
+    { name: "Plaid",   domain: "plaid.com",    scope: "global" },
+    { name: "Brex",    domain: "brex.com",     scope: "global" },
+  ],
+  crm: [
+    { name: "Salesforce",  domain: "salesforce.com", scope: "global" },
+    { name: "HubSpot",     domain: "hubspot.com",    scope: "global" },
+    { name: "Pipedrive",   domain: "pipedrive.com",  scope: "global" },
+    { name: "Zoho CRM",    domain: "zoho.com",       scope: "global" },
+    { name: "Close CRM",   domain: "close.com",      scope: "local"  },
+  ],
+  marketing: [
+    { name: "Marketo",       domain: "marketo.com",         scope: "global" },
+    { name: "Mailchimp",     domain: "mailchimp.com",        scope: "global" },
+    { name: "Klaviyo",       domain: "klaviyo.com",          scope: "global" },
+    { name: "Braze",         domain: "braze.com",            scope: "global" },
+    { name: "ActiveCampaign",domain: "activecampaign.com",   scope: "global" },
+  ],
+  "revenue intelligence": [
+    { name: "Gong",      domain: "gong.io",       scope: "global" },
+    { name: "Chorus",    domain: "chorus.ai",     scope: "global" },
+    { name: "Clari",     domain: "clari.com",     scope: "global" },
+    { name: "Outreach",  domain: "outreach.io",   scope: "global" },
+    { name: "SalesLoft", domain: "salesloft.com", scope: "global" },
+    { name: "ZoomInfo",  domain: "zoominfo.com",  scope: "global" },
+    { name: "6sense",    domain: "6sense.com",    scope: "global" },
+  ],
+  nutrition: [
+    { name: "GNC",             domain: "gnc.com",             scope: "global" },
+    { name: "Thorne",          domain: "thorne.com",          scope: "global" },
+    { name: "Garden of Life",  domain: "garden-of-life.com",  scope: "global" },
+    { name: "NOW Foods",       domain: "nowfoods.com",        scope: "global" },
+    { name: "Optimum Nutrition",domain:"optimumnutrition.com",scope: "global" },
+    { name: "iHerb",           domain: "iherb.com",           scope: "global" },
+    { name: "Herbalife",       domain: "herbalife.com",       scope: "global" },
+    { name: "Vitacost",        domain: "vitacost.com",        scope: "global" },
+  ],
+  supplement: [
+    { name: "Thorne",          domain: "thorne.com",          scope: "global" },
+    { name: "GNC",             domain: "gnc.com",             scope: "global" },
+    { name: "NOW Foods",       domain: "nowfoods.com",        scope: "global" },
+    { name: "Garden of Life",  domain: "garden-of-life.com",  scope: "global" },
+    { name: "iHerb",           domain: "iherb.com",           scope: "global" },
+    { name: "Vitacost",        domain: "vitacost.com",        scope: "global" },
+    { name: "Swanson",         domain: "swansonvitamins.com", scope: "global" },
+  ],
+  health: [
+    { name: "GNC",            domain: "gnc.com",            scope: "global" },
+    { name: "Herbalife",      domain: "herbalife.com",      scope: "global" },
+    { name: "USANA",          domain: "usana.com",          scope: "global" },
+    { name: "Thorne",         domain: "thorne.com",         scope: "global" },
+    { name: "Garden of Life", domain: "garden-of-life.com", scope: "global" },
+    { name: "iHerb",          domain: "iherb.com",          scope: "global" },
+    { name: "Vitamin Shoppe", domain: "vitaminshoppe.com",  scope: "global" },
+    { name: "AG1",            domain: "ag1.com",            scope: "global" },
+  ],
+  wellness: [
+    { name: "Garden of Life", domain: "garden-of-life.com", scope: "global" },
+    { name: "dōTERRA",        domain: "doterra.com",        scope: "global" },
+    { name: "Thorne",         domain: "thorne.com",         scope: "global" },
+    { name: "Herbalife",      domain: "herbalife.com",      scope: "global" },
+    { name: "iHerb",          domain: "iherb.com",          scope: "global" },
+    { name: "Orgain",         domain: "orgain.com",         scope: "global" },
+    { name: "Ritual",         domain: "ritual.com",         scope: "global" },
+  ],
+  travel: [
+    { name: "Booking.com",  domain: "booking.com",    scope: "global" },
+    { name: "Airbnb",       domain: "airbnb.com",     scope: "global" },
+    { name: "Expedia",      domain: "expedia.com",    scope: "global" },
+    { name: "TripAdvisor",  domain: "tripadvisor.com",scope: "global" },
+  ],
+};
+
+export function getNicheSeeds(niche: string): SeedEntry[] {
+  const n = niche.toLowerCase();
+  for (const [key, seeds] of Object.entries(NICHE_SEEDS)) {
+    if (n.includes(key)) return seeds;
+  }
+  return [];
+}

@@ -1,0 +1,25 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Database files
+revenueradar.db
+revenueradar.db-shm
+revenueradar.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Cognee memory graph
+.cognee_db/
+
+# Claude Code memory & settings
+.claude/
+
+# Editor
+.vscode/

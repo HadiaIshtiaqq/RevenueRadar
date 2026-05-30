@@ -1,0 +1,320 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 30 }]
+        }
+      },
+      "id": "8cb668bd-7971-467b-9a80-2915b7236ebc",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-2400, 128]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/db/tasks",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [{ "name": "status", "value": "Pending" }]
+        },
+        "options": {
+          "response": {
+            "response": { "responseFormat": "json" }
+          }
+        }
+      },
+      "id": "aa11bb22-1111-2222-3333-read-tasks-001",
+      "name": "Read Pending Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-2176, 128]
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n HTTP Request already splits a JSON array response into individual items.\n// Each item here is already one task — just pass them through.\nconst items = $input.all();\nif (!items || items.length === 0) {\n  console.log('[RevenueRadar] No pending tasks found.');\n  return [];\n}\nconsole.log(`[RevenueRadar] Processing ${items.length} pending task(s).`);\nreturn items.map(item => ({ json: item.json }));"
+      },
+      "id": "aa11bb22-1111-2222-3333-split-tasks-002",
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1952, 128]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://localhost:3000/api/db/tasks/{{ $json.id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"Processing\",\n  \"start_time\": \"{{ $now.toISO() }}\"\n}",
+        "options": {
+          "response": {
+            "response": { "responseFormat": "json" }
+          }
+        }
+      },
+      "id": "aa11bb22-1111-2222-3333-mark-proc-003",
+      "name": "Mark as Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1728, 128]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a3",
+              "name": "original_task",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aa11bb22-1111-2222-3333-capture-orig-004",
+      "name": "Capture Original Task",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [-1504, 128]
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search.json?engine=google_shopping&q={{ encodeURIComponent($json.original_task.Topic) }}&hl=en&num=20&api_key={{ $env.SERPAPI_KEY }}",
+        "options": {
+          "response": {
+            "response": { "responseFormat": "json" }
+          }
+        }
+      },
+      "id": "1ac8b701-5a16-41b1-9bc1-f103d969fafc",
+      "name": "Fetch from SerpAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1280, 128]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform SerpAPI response to match our workflow format\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const serpData = item.json;\n  \n  // Extract shopping results\n  const shoppingResults = serpData.shopping_results || [];\n  \n  // Extract all prices (convert to PKR if needed)\n  const prices = shoppingResults\n    .map(product => {\n      let price = product.extracted_price || product.price;\n      \n      // If price is a string, try to extract number\n      if (typeof price === 'string') {\n        price = parseFloat(price.replace(/[^0-9.]/g, ''));\n      }\n      \n      return price;\n    })\n    .filter(price => price && price > 0 && price < 10000000);\n  \n  // Extract product titles and links\n  const titles = shoppingResults.map(p => p.title).filter(t => t);\n  const links = shoppingResults.map(p => p.link).filter(l => l);\n  const sources = shoppingResults.map(p => p.source).filter(s => s);\n  \n  // Calculate statistics\n  const priceStats = {\n    min: prices.length > 0 ? Math.min(...prices) : 0,\n    max: prices.length > 0 ? Math.max(...prices) : 0,\n    avg: prices.length > 0 ? Math.round(prices.reduce((a,b) => a+b) / prices.length) : 0,\n    count: prices.length\n  };\n  \n  // Get original task data from the previous node\n  const originalTask = item.json.original_task || {};\n  \n  // Build structured output for AI analysis\n  results.push({\n    json: {\n      // Preserve original task info\n      original_task: originalTask,\n      \n      // Scraped data from SerpAPI\n      prices_found: prices,\n      min_price_pkr: priceStats.min,\n      max_price_pkr: priceStats.max,\n      avg_price_pkr: priceStats.avg,\n      price_count: priceStats.count,\n      price_variance_percent: priceStats.max > 0 ? Math.round(((priceStats.max - priceStats.min) / priceStats.min) * 100) : 0,\n      \n      // Product information\n      product_titles: titles.slice(0, 15),\n      product_sources: sources.slice(0, 10),\n      evidence_links: links.slice(0, 5),\n      \n      // Data quality indicators\n      data_quality: prices.length >= 10 ? 'excellent' : \n                    prices.length >= 5 ? 'good' : \n                    prices.length >= 3 ? 'moderate' : 'poor',\n      sources_analyzed: shoppingResults.length,\n      \n      // Full context summary for AI\n      research_summary: `Analyzed ${shoppingResults.length} products for \"${originalTask.Topic}\" in ${originalTask.Region}. Found ${prices.length} valid prices ranging from PKR ${priceStats.min} to PKR ${priceStats.max}.`\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "578818ec-ee3a-439a-8ef1-92676625223d",
+      "name": "Transform SerpAPI Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1056, 128]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "3fde64b3-4645-440a-9461-8662dcd22431",
+      "name": "Combine All Scraped Data",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [-832, 128]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are analyzing Google Shopping data. Respond with ONLY valid JSON. No markdown, no explanations.\n\nDATA:\n{{ JSON.stringify($json, null, 2) }}\n\nRESPOND WITH THIS EXACT JSON STRUCTURE:\n{\n  \"verified_trend\": \"one clear market insight\",\n  \"pricing_gap\": {\n    \"competitor_range\": \"PKR X - PKR Y\",\n    \"recommended_position\": \"PKR Z\",\n    \"opportunity\": \"description\"\n  },\n  \"feature_insights\": [\"insight 1\", \"insight 2\"],\n  \"confidence_score\": 85,\n  \"confidence_rationale\": \"reason\",\n  \"evidence_links\": [\"url1\", \"url2\"],\n  \"data_summary\": {\n    \"sources_analyzed\": 0,\n    \"price_points_found\": 0,\n    \"avg_price_pkr\": 0,\n    \"price_variance_percent\": 0\n  }\n}\n\nUse data from: min_price_pkr, max_price_pkr, avg_price_pkr, prices_found, product_titles, evidence_links arrays."
+      },
+      "id": "b0d620e3-9015-4be9-b4d7-84bfe7826aea",
+      "name": "AI Analyst (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [-608, 128],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.2
+        }
+      },
+      "id": "211eb32e-500a-44b0-842a-6974f1a2f1a6",
+      "name": "Gemini 1.5 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-608, 320],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zlt2abIqLWy9sLJ5",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and calculate opportunity score - SIMPLE robust parsing\nconst item = $input.first();\nlet analysis;\n\ntry {\n  // Get the raw AI text\n  let text = item.json.text || item.json.output || '';\n\n  // Remove markdown code fences ONLY (do not mangle the JSON itself)\n  text = text.replace(/```json/gi, '').replace(/```/g, '').trim();\n\n  // Extract the JSON object between the first { and last }\n  const jsonStart = text.indexOf('{');\n  const jsonEnd = text.lastIndexOf('}');\n  if (jsonStart !== -1 && jsonEnd !== -1) {\n    text = text.substring(jsonStart, jsonEnd + 1);\n  }\n\n  // Parse directly - the AI returns valid JSON, no cleanup needed\n  analysis = JSON.parse(text);\n\n} catch (error) {\n  console.error('JSON Parse Error:', error.message);\n  analysis = {\n    verified_trend: \"Data collected but AI response format error - retry needed\",\n    pricing_gap: {\n      competitor_range: \"Unable to parse\",\n      recommended_position: \"N/A\",\n      opportunity: \"Insufficient data quality\"\n    },\n    feature_insights: [\"AI analysis failed to parse - retry recommended\"],\n    confidence_score: 0,\n    confidence_rationale: \"JSON parsing error: \" + error.message,\n    evidence_links: [],\n    data_summary: {\n      sources_analyzed: 0,\n      price_points_found: 0,\n      avg_price_pkr: 0,\n      price_variance_percent: 0\n    },\n    error: error.message,\n    raw_response: (item.json.text || item.json.output || '').substring(0, 500)\n  };\n}\n\n// Ensure all required fields exist\nanalysis.verified_trend = analysis.verified_trend || \"No trend identified\";\nanalysis.pricing_gap = analysis.pricing_gap || {\n  competitor_range: \"N/A\",\n  recommended_position: \"N/A\",\n  opportunity: \"N/A\"\n};\nanalysis.feature_insights = analysis.feature_insights || [];\nanalysis.confidence_score = analysis.confidence_score || 0;\nanalysis.confidence_rationale = analysis.confidence_rationale || \"No rationale provided\";\nanalysis.evidence_links = analysis.evidence_links || [];\nanalysis.data_summary = analysis.data_summary || {\n  sources_analyzed: 0,\n  price_points_found: 0,\n  avg_price_pkr: 0\n};\n\n// Calculate opportunity score (0-100)\nlet opportunityScore = 0;\nif (analysis.confidence_score) {\n  opportunityScore += (analysis.confidence_score / 100) * 40;\n  if (analysis.pricing_gap && analysis.pricing_gap.competitor_range) {\n    const range = String(analysis.pricing_gap.competitor_range).match(/([0-9,]+)/g);\n    if (range && range.length >= 2) {\n      const min = parseInt(range[0].replace(/,/g, ''));\n      const max = parseInt(range[1].replace(/,/g, ''));\n      const gapPercent = min > 0 ? ((max - min) / min) * 100 : 0;\n      if (gapPercent > 50) opportunityScore += 30;\n      else if (gapPercent > 25) opportunityScore += 20;\n      else opportunityScore += 10;\n    }\n  }\n  const insightCount = analysis.feature_insights.length || 0;\n  opportunityScore += Math.min(insightCount * 10, 30);\n}\nanalysis.opportunity_score = Math.round(Math.min(opportunityScore, 100));\nanalysis.status = analysis.confidence_score >= 50 ? 'approved' : 'needs_retry';\nanalysis.processed_at = new Date().toISOString();\n\n// Preserve original task data\ntry {\n  analysis.original_task = $('Transform SerpAPI Data').first().json.original_task;\n} catch (e) {\n  analysis.original_task = {\n    id: null,\n    Topic: \"Unknown\",\n    Region: \"Unknown\",\n    'Target Competitors': \"\",\n    'Retry Count': 0\n  };\n}\n\nreturn [{ json: analysis }];"
+      },
+      "id": "4285b0fe-633f-4798-bc48-eece8f1560b9",
+      "name": "Calculate Opportunity Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-336, 128]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.confidence_score }}",
+              "operation": "largerEqual",
+              "value2": 50
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8fc7491e-0d44-4c1c-bd6f-10eb5d906567",
+      "name": "Check if Confidence >= 50",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-128, 128]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/db/results",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task_id\": {{ $json.original_task?.id || 'null' }},\n  \"topic\": {{ JSON.stringify($json.original_task?.Topic || '') }},\n  \"region\": {{ JSON.stringify($json.original_task?.Region || '') }},\n  \"verified_trend\": {{ JSON.stringify($json.verified_trend) }},\n  \"pricing_gap\": {{ JSON.stringify($json.pricing_gap) }},\n  \"feature_insights\": {{ JSON.stringify($json.feature_insights) }},\n  \"confidence_score\": {{ $json.confidence_score }},\n  \"confidence_rationale\": {{ JSON.stringify($json.confidence_rationale) }},\n  \"opportunity_score\": {{ $json.opportunity_score }},\n  \"evidence_links\": {{ JSON.stringify($json.evidence_links) }},\n  \"data_summary\": {{ JSON.stringify($json.data_summary) }},\n  \"status\": \"approved\",\n  \"processed_at\": {{ JSON.stringify($json.processed_at) }}\n}",
+        "options": {
+          "response": {
+            "response": { "responseFormat": "json" }
+          }
+        }
+      },
+      "id": "aa11bb22-1111-2222-3333-save-results-005",
+      "name": "Save to DB Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [96, 0]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://localhost:3000/api/db/tasks/{{ $json.original_task?.id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"Completed\",\n  \"completed_time\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "id": "aa11bb22-1111-2222-3333-mark-done-006",
+      "name": "Mark Task Completed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.original_task?.['Retry Count'] || 0 }}",
+              "operation": "smaller",
+              "value2": 3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e424c190-3f22-4552-812f-470acdefbb83",
+      "name": "Check if Retry Allowed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [96, 240]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://localhost:3000/api/db/tasks/{{ $json.original_task?.id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"Pending\",\n  \"retry_count\": {{ ($json.original_task?.['Retry Count'] || 0) + 1 }}\n}",
+        "options": {}
+      },
+      "id": "aa11bb22-1111-2222-3333-retry-007",
+      "name": "Increment Retry & Re-queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 160]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://localhost:3000/api/db/tasks/{{ $json.original_task?.id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"Failed\",\n  \"failure_reason\": \"Max retries exceeded - confidence score remained below 50%\"\n}",
+        "options": {}
+      },
+      "id": "aa11bb22-1111-2222-3333-failed-008",
+      "name": "Mark as Failed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 320]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Read Pending Tasks", "type": "main", "index": 0 }]]
+    },
+    "Read Pending Tasks": {
+      "main": [[{ "node": "Split Tasks", "type": "main", "index": 0 }]]
+    },
+    "Split Tasks": {
+      "main": [[{ "node": "Mark as Processing", "type": "main", "index": 0 }]]
+    },
+    "Mark as Processing": {
+      "main": [[{ "node": "Capture Original Task", "type": "main", "index": 0 }]]
+    },
+    "Capture Original Task": {
+      "main": [[{ "node": "Fetch from SerpAPI", "type": "main", "index": 0 }]]
+    },
+    "Fetch from SerpAPI": {
+      "main": [[{ "node": "Transform SerpAPI Data", "type": "main", "index": 0 }]]
+    },
+    "Transform SerpAPI Data": {
+      "main": [[{ "node": "Combine All Scraped Data", "type": "main", "index": 0 }]]
+    },
+    "Combine All Scraped Data": {
+      "main": [[{ "node": "AI Analyst (Gemini)", "type": "main", "index": 0 }]]
+    },
+    "AI Analyst (Gemini)": {
+      "main": [[{ "node": "Calculate Opportunity Score", "type": "main", "index": 0 }]]
+    },
+    "Gemini 1.5 Flash": {
+      "ai_languageModel": [[{ "node": "AI Analyst (Gemini)", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Calculate Opportunity Score": {
+      "main": [[{ "node": "Check if Confidence >= 50", "type": "main", "index": 0 }]]
+    },
+    "Check if Confidence >= 50": {
+      "main": [
+        [{ "node": "Save to DB Results", "type": "main", "index": 0 }],
+        [{ "node": "Check if Retry Allowed", "type": "main", "index": 0 }]
+      ]
+    },
+    "Save to DB Results": {
+      "main": [[{ "node": "Mark Task Completed", "type": "main", "index": 0 }]]
+    },
+    "Check if Retry Allowed": {
+      "main": [
+        [{ "node": "Increment Retry & Re-queue", "type": "main", "index": 0 }],
+        [{ "node": "Mark as Failed", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "f2b0478a0563ddac663853b135fb795aa468075422b2a911e275aab3343ee704"
+  }
+}

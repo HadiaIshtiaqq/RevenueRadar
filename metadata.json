@@ -1,0 +1,6 @@
+{
+  "name": "RevenueRadar",
+  "description": "See competitors coming before they arrive",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
