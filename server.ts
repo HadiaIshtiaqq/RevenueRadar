@@ -1459,7 +1459,9 @@ ${transcript.slice(0, 14_000)}
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
   } else {
-    const dist = path.join(__dirname, "dist");
+    // process.cwd() = /app (WORKDIR), dist/ is always at /app/dist regardless of
+    // where server.mjs lives (avoids double-dist when __dirname = /app/dist/)
+    const dist = path.join(process.cwd(), "dist");
     app.use(express.static(dist));
     app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
   }
